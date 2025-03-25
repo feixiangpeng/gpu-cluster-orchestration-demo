@@ -1,0 +1,74 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  scrape_timeout: 10s
+
+alerting:
+  alertmanagers:
+  - static_configs:
+    - targets:
+      - alertmanager:9093
+
+rule_files:
+  - "gpu_alerts.yml"
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+    - targets: ['localhost:9090']
+
+  - job_name: 'node'
+    static_configs:
+    - targets: ['node-exporter:9100']
+      labels:
+        service: 'system-metrics'
+
+  - job_name: 'dcgm'
+    scrape_interval: 5s
+    static_configs:
+    - targets: ['dcgm-exporter:9400']
+      labels:
+        service: 'gpu-detailed-metrics'
+        cluster: 'research-cluster'
+
+    relabel_configs:
+    - source_labels: [__meta_node_name]
+      target_label: node
+    - source_labels: [__meta_gpu_id]
+      target_label: gpu_id
+
+remote_write:
+  - url: "http://remote-storage:8086/api/v1/prom/write"
+    basic_auth:
+      username: "prometheus"
+      password_file: "/etc/prometheus/password"
+    write_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'gpu_.*'
+        action: keepmetrics'
+    
+  - job_name: 'slurm'
+    static_configs:
+    - targets: ['slurm-exporter:9092']
+      labels:
+        service: 'slurm-metrics'
+
+  - job_name: 'cluster_nodes'
+    file_sd_configs:
+    - files:
+      - 'cluster_nodes.yml'
+      refresh_interval: 5m
+
+  - job_name: 'job_metrics'
+    static_configs:
+    - targets: ['job-exporter:9090']
+      labels:
+        service: 'job-metrics'
+
+  - job_name: 'gpu_metrics'
+    scrape_interval: 10s
+    metrics_path: '/metrics'
+    static_configs:
+    - targets: ['gpu-metrics:9835']
+      labels:
+        service: 'gpu-
