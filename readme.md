@@ -54,3 +54,15 @@ python gpu_simulation.py
 ```
 python pseudo_cuda_explanation.py
 ```
+
+## Simulation Results and Visualizations
+<img width="872" alt="Screenshot 2025-03-25 at 15 31 11" src="https://github.com/user-attachments/assets/1bd3b83d-9faa-49c2-bf34-6b90d0fd57ca" />
+This visualization shows simulated GPU cluster usage over time. The top graph tracks overall utilization, declining from 62% to 0% with a brief spike midway. The bottom graph breaks down activity by node, revealing:
+
+- Node 0: Most actively used, with periods of 100% and 75% utilization
+- Node 1 & Node 2: Moderate usage (75%) with staggered job completions 
+- Node 3: Completely unused throughout
+
+This demonstrates dynamic resource allocation across a cluster as jobs are scheduled and completed, highlighting potential load balancing issues with Node 3 sitting idle.
+
+
